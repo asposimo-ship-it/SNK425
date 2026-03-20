@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snk425 | Archive</title>
+    <link href="https://fonts.googleapis.com" rel="stylesheet">
+    <style>
+        :root { 
+            --sidebar: #cf0000; 
+            --bg-right: #cf0000; 
+            --text-light: #ffffff; 
+            --sidebar-text: #ffffff; 
+            --scrollbar-thumb: rgba(255, 255, 255, 0.3); 
+            --scrollbar-hover: rgba(255, 255, 255, 0.5); 
+        }
+        body { font-family: 'Antonio', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; background: var(--bg-right); color: var(--text-light); }
+        
+        .menu-container::-webkit-scrollbar { width: 6px; }
+        .menu-container::-webkit-scrollbar-track { background: transparent; }
+        .menu-container::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 10px; }
+        .menu-container::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-hover); }
+        .menu-container { scrollbar-width: thin; scrollbar-color: var(--scrollbar-thumb) transparent; }
+
+        .sidebar { width: 320px; background: var(--sidebar); color: var(--sidebar-text); display: flex; flex-direction: column; z-index: 2000; flex-shrink: 0; border-right: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-header { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.2); display: flex; justify-content: center; align-items: center; min-height: 180px; }
+        .sidebar-logo { width: 100%; height: auto; max-height: 180px; object-fit: contain; }
+        .menu-container { flex: 1; overflow-y: auto; padding: 10px 25px; }
+        .brand-section { margin-bottom: 25px; }
+        .brand-toggle { font-weight: 700; font-size: 1.4rem; padding: 10px 0; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); letter-spacing: 2px; }
+        .submenu { display: none; margin-top: 10px; }
+        .category-group { margin-bottom: 5px; }
+        .category-title { padding: 5px 0; color: white; cursor: pointer; font-size: 1.1rem; font-weight: 300; display: flex; align-items: center; gap: 12px; letter-spacing: 1px; }
+        .sub-list { display: none; padding-left: 20px; margin: 5px 0 15px 0; }
+        .menu-item { padding: 4px 0; cursor: pointer; font-size: 0.95rem; color:rgba(255, 255, 255, 0.7); }
+        .menu-item:hover { color: white; }
+
+        .main-content { flex: 1; height: 100vh; overflow: hidden; display: flex; align-items: center; justify-content: center; position: relative; background: var(--bg-right); }
+        #empty-state { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
+        .empty-logo { width: 350px; height: auto; max-height: 250px; object-fit: contain; }
+
+        .shoe-page { display: none; width: 100%; max-width: 1100px; padding: 40px; z-index: 10; }
+        .shoe-page.active { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .shoe-header { display: flex; gap: 60px; align-items: flex-start; justify-content: center; }
+        .image-gallery-container { width: 380px; flex-shrink: 0; }
+        .main-img-wrapper { width: 380px; height: 380px; background: rgba(255,255,255,0.05); border-radius: 15px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 20px; cursor: zoom-in; }
+        .shoe-img-main { width: 100%; height: 100%; object-fit: contain; }
+        .thumb-container { display: flex; gap: 8px; justify-content: center; }
+        .thumb-img { width: 60px; height: 60px; border-radius: 6px; cursor: pointer; object-fit: cover; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); transition: 0.2s; }
+        .thumb-img:hover { border-color: white; transform: translateY(-2px); }
+
+        .shoe-info-panel { flex: 1; color: white; }
+        .brand-tag { font-weight: 700; color: rgba(255,255,255,0.6); font-size: 0.9rem; letter-spacing: 2px; text-transform: uppercase; }
+        .model-title { font-weight: 700; font-size: 3rem; margin: 5px 0; color: white; line-height: 1; }
+        .details-grid { margin: 20px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .detail-row strong { color: rgba(255,255,255,0.5); font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; display: block; margin-bottom: 2px; }
+        .detail-row span { font-size: 1rem; display: block; }
+        .description-box { font-size: 0.95rem; line-height: 1.4; color: rgba(255,255,255,0.9); border-top: 1px solid rgba(255,255,255,0.2); padding-top: 15px; margin-bottom: 20px; max-height: 180px; overflow-y: auto; padding-right: 10px; }
+        .description-box::-webkit-scrollbar { width: 4px; }
+        .description-box::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+        .price-big { font-size: 3rem; font-weight: 700; color: white; display: block; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 10px; }
+
+        .lightbox { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 5000; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; }
+        .lightbox.open { display: flex; opacity: 1; }
+        .lightbox img { max-width: 85%; max-height: 85%; object-fit: contain; border-radius: 10px; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
+        .lightbox-close { position: absolute; top: 30px; right: 40px; color: white; font-size: 50px; cursor: pointer; transition: 0.2s; line-height: 1; }
+        .lightbox-close:hover { color: var(--sidebar); }
+        .lightbox-nav { position: absolute; top: 50%; width: 100%; display: flex; justify-content: space-between; padding: 0 30px; box-sizing: border-box; transform: translateY(-50%); pointer-events: none; }
+        .nav-btn { pointer-events: auto; background: rgba(255,255,255,0.1); color: white; border: none; width: 60px; height: 60px; border-radius: 50%; font-size: 30px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; }
+        .nav-btn:hover { background: white; color: black; }
+
+        @media (max-width: 992px) {
+            .sidebar { position: fixed; left: -320px; }
+            .shoe-header { flex-direction: column; align-items: center; gap: 20px; }
+            .image-gallery-container { width: 100%; max-width: 320px; }
+            .main-img-wrapper { width: 100%; height: 320px; }
+            .details-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div id="lightbox" class="lightbox" onclick="closeLightbox()">
+        <span class="lightbox-close" onclick="closeLightbox()">&times;</span>
+        <div class="lightbox-nav">
+            <button class="nav-btn" onclick="prevImg(event)">❮</button>
+            <button class="nav-btn" onclick="nextImg(event)">❯</button>
+        </div>
+        <img id="lightbox-img" src="" alt="Zoom" onclick="event.stopPropagation()">
+    </div>
+
+    <div class="sidebar" id="mainSidebar">
+        <div class="sidebar-header">
+            <img src="img/logo.jpg" alt="Logo" class="sidebar-logo">
+        </div>
+        <div class="menu-container">
+            <div class="brand-section">
+                <div class="brand-toggle" onclick="toggleView('drop-adidas')">Adidas</div>
+                <div id="drop-adidas" class="submenu">
+                    <div class="category-group"><div class="category-title" onclick="toggleView('cat-forum')">Forum</div><div id="cat-forum" class="sub-list"></div></div>
+                    <div class="category-group"><div class="category-title" onclick="toggleView('cat-jabbar')">Jabbar</div><div id="cat-jabbar" class="sub-list"></div></div>
+                    <div class="category-group"><div class="category-title" onclick="toggleView('cat-stansmith')">Stan Smith</div><div id="cat-stansmith" class="sub-list"></div></div>
+                </div>
+            </div>
+            <div class="brand-section">
+                <div class="brand-toggle" onclick="toggleView('drop-coldsins')">Cold Sins</div>
+                <div id="drop-coldsins" class="submenu">
+                    <div class="category-group"><div class="category-title" onclick="toggleView('cat-chucky')">Chucky</div><div id="cat-chucky" class="sub-list"></div></div>
+                    <div class="category-group"><div class="category-title" onclick="toggleView('cat-jasonvsnightmare')">Jason Vs Nightmare</div><div id="cat-jasonvsnightmare" class="sub-list"></div></div>
+                </div>
+            </div>
+            <div class="brand-section">
+                <div class="brand-toggle" onclick="toggleView('drop-nike')">Nike</div>
+                <div id="drop-nike" class="submenu">
+                    <div class="category-group">
+                        <div class="category-title" onclick="toggleView('sub-af1')">Air Force 1</div>
+                        <div id="sub-af1" style="display:none; padding-left:15px;">
+                            <div class="category-group"><div class="category-title" onclick="toggleView('cat-af1low')">Low</div><div id="cat-af1low" class="sub-list"></div></div>
+                            <div class="category-group"><div class="category-title" onclick="toggleView('cat-af1mid')">Mid</div><div id="cat-af1mid" class="sub-list"></div></div>
+                        </div>
+                    </div>
+                    <div class="category-group"><div class="category-title" onclick="toggleView('cat-jamorant')">Ja Morant</div><div id="cat-jamorant" class="sub-list"></div></div>
+                    <div class="category-group"><div class="category-title" onclick="toggleView('cat-jordan')">Jordan</div><div id="cat-jordan" class="sub-list"></div></div>
+                    <div class="category-group"><div class="category-title" onclick="toggleView('cat-react')">React</div><div id="cat-react" class="sub-list"></div></div>
+                    <div class="category-group"><div class="category-title" onclick="toggleView('cat-sbdunk')">SB Dunk</div><div id="cat-sbdunk" class="sub-list"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div id="empty-state">
+            <img src="img/logo.jpg" class="empty-logo" alt="Snk425">
+        </div>
+        <div id="shoe-display" class="shoe-page">
+            <div class="shoe-header">
+                <div class="image-gallery-container">
+                    <div class="main-img-wrapper" onclick="openLightbox()">
+                        <img id="main-img" src="" class="shoe-img-main">
+                    </div>
+                    <div id="thumbs" class="thumb-container"></div>
+                </div>
+                <div class="shoe-info-panel">
+                    <span id="brand-txt" class="brand-tag"></span>
+                    <h1 id="model-txt" class="model-title"></h1>
+                    <div class="details-grid">
+                        <div class="detail-row"><strong>Taglia</strong><span id="size-txt"></span></div>
+                        <div class="detail-row"><strong>Colore</strong><span id="color-txt"></span></div>
+                        <div class="detail-row"><strong>Sku</strong><span id="sku-txt"></span></div>
+                    </div>
+                    <div id="desc-txt" class="description-box"></div>
+                    <span id="price-txt" class="price-big"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const sneakerData = [
+            { 
+                id: "nike-af1-crater-lemon", 
+                brand: "Nike", 
+                category: "AF1 Low", 
+                model: "Air Force 1 Low Crater 'Light Lemon Twist'", 
+                size: "42",
+                color: "Light Lemon Twist/Navy",
+                price: "250 €", 
+                sku: "DH2521-700", 
+                description: "Iconica AF1 in versione ecosostenibile. Intersuola in schiuma Crater con gomma riciclata e colorazione neon audace.", 
+                images: ["img/lemon1.jpeg", "img/lemon2.jpeg", "img/lemon3.jpeg", "img/lemon4.jpeg", "img/lemon5.jpeg"] 
+            },
+            { 
+                id: "nike-af1-mid-off-white", 
+                brand: "Nike", 
+                category: "AF1 Mid", 
+                model: "Air Force 1 Mid Off-White 'Varsity Maize'", 
+                size: "42.5",
+                color: "White/White/Varsity Maize - Accessori: Yellow Ziptie",
+                price: "250 €", 
+                sku: "DR0500-101", 
+                description: "Collaborazione esclusiva con dettagli industriali, suola dentellata e l'iconico ricamo Varsity Maize sul tallone.", 
+                images: ["img/of1.webp", "img/of2.webp", "img/of3.webp", "img/of4.webp", "img/of5.webp"] 
+            },
+            {
+                id: "jordan-5-wolf-grey",
+                brand: "Nike",
+                category: "Jordan",
+                model: "Air Jordan 5 Retro 'Wolf Grey'",
+                size: "42.5",
+                color: "Light Graphite/Wolf Grey",
+                price: "350 €", 
+                sku: "DD0587-002",
+                description: "Nabuk premium Wolf Grey con linguetta riflettente 3M e suola traslucida azzurrata. Un classico del brand Jordan.",
+                images: ["img/wolf1.webp", "img/wolf2.webp", "img/wolf3.webp", "img/wolf4.webp", "img/wolf5.webp"]
+            },
+            { 
+                id: "nike-ja1-zombie", 
+                brand: "Nike", 
+                category: "Ja Morant", 
+                model: "Ja 1 'Halloween Zombie'", 
+                size: "42.5", 
+                color: "Lime Blast/Oil Green",
+                price: "250 €", 
+                sku: "FD6565-300", 
+                description: "Versione spettrale firmata Ja Morant con dettagli zombie e mani scheletriche sul tallone. Colore vibrante Lime Blast.", 
+                images: ["img/zombie1.jpg", "img/zombie2.jpg", "img/zombie3.jpg", "img/zombie4.jpg"] 
+            },
+            {
+                id: "nike-ja3-swarovski",
+                brand: "Nike",
+                category: "Ja Morant",
+                model: "Ja 3 'Swarovski Warning Label'",
+                size: "43",
+                color: "Black/Multi - Accessori: Grill Lace Locks",
+                price: "450 €", 
+                sku: "IB6675-001 / IB6674-001",
+                description: "Lussuosa collaborazione impreziosita da cristalli Swarovski multidimensionali. Include accessori Grill Lace Locks.",
+                images: ["img/JA31.webp", "img/JA32.webp", "img/JA33.webp", "img/JA34.webp", "img/JA35.webp"] 
+            },
+            {
+                id: "nike-react-vision-grey-orange",
+                brand: "Nike",
+                category: "React",
+                model: "Nike React Vision SC 'Grey Fog Team Orange'",
+                size: "42.5",
+                color: "Grey Fog/Team Orange",
+                price: "180 €", 
+                sku: "DR8611-001",
+                description: "Comfort surreale grazie alla tecnologia Nike React. Design futuristico con texture stratificate e colori dinamici.",
+                images: ["img/Vision1.jpg", "img/Vision2.jpg", "img/Vision3.jpg", "img/Vision4.jpg"]
+            },
+            {
+                id: "nike-sb-dunk-chunky-dunky",
+                brand: "Nike",
+                category: "SB Dunk",
+                model: "Nike SB Dunk Low Ben & Jerry's 'Chunky Dunky'",
+                size: "42.5",
+                color: "Multi-Color/Multi-Color",
+                price: "2450 €", 
+                sku: "CU3244-100",
+                description: "Celebre collaborazione ispirata al packaging Ben & Jerry's. Pannelli in finto pelo bovino e Swoosh che cola.",
+                images: ["img/cc1.webp", "img/cc2.webp", "img/cc3.webp", "img/cc4.webp", "img/cc5.webp"]
+            },
+            {
+                id: "nike-dunk-rabbit",
+                brand: "Nike",
+                category: "SB Dunk",
+                model: "Nike Dunk Low Retro PRM 'Year of the Rabbit' (2023)",
+                size: "42.5",
+                color: "White/Crimson - Accessori: Year of rabbit sleeve",
+                price: "280 €", 
+                sku: "FD4203-161",
+                description: "Edizione speciale celebrativa del Capodanno Cinese con dettagli in Chenille effetto pelliccia.",
+                images: ["img/rabbit1.png", "img/rabbit2.png", "img/rabbit3.png"]
+            }
+        ];
+
+        let currentImgIndex = 0;
+        let activeImages = [];
+
+        function initMenu() {
+            const subLists = document.querySelectorAll('.sub-list');
+            subLists.forEach(list => list.innerHTML = '');
+            sneakerData.forEach(snk => {
+                const listId = `cat-${snk.category.toLowerCase().replace(/\s+/g,'')}`;
+                const list = document.getElementById(listId);
+                if (list) {
+                    const item = document.createElement('div');
+                    item.className = 'menu-item';
+                    item.innerText = snk.model;
+                    item.onclick = () => showShoe(snk.id);
+                    list.appendChild(item);
+                }
+            });
+        }
+
+        function toggleView(id) {
+            const el = document.getElementById(id);
+            el.style.display = (el.style.display === "block") ? "none" : "block";
+        }
+
+        function showShoe(id) {
+            const shoe = sneakerData.find(s => s.id === id);
+            if (!shoe) return;
+            activeImages = shoe.images;
+            currentImgIndex = 0;
+            document.getElementById('empty-state').style.display = 'none';
+            document.getElementById('shoe-display').classList.add('active');
+            document.getElementById('brand-txt').innerText = shoe.brand;
+            document.getElementById('model-txt').innerText = shoe.model;
+            document.getElementById('size-txt').innerText = shoe.size;
+            document.getElementById('color-txt').innerText = shoe.color;
+            document.getElementById('sku-txt').innerText = shoe.sku;
+            document.getElementById('price-txt').innerText = shoe.price;
+            document.getElementById('desc-txt').innerText = shoe.description;
+            updateMainImage(0);
+            const thumbs = document.getElementById('thumbs');
+            thumbs.innerHTML = '';
+            shoe.images.forEach((img, idx) => {
+                const t = document.createElement('img');
+                t.src = img;
+                t.className = 'thumb-img';
+                t.onclick = () => updateMainImage(idx);
+                thumbs.appendChild(t);
+            });
+        }
+
+        function updateMainImage(index) {
+            currentImgIndex = index;
+            document.getElementById('main-img').src = activeImages[index];
+        }
+
+        function openLightbox() {
+            const lb = document.getElementById('lightbox');
+            document.getElementById('lightbox-img').src = activeImages[currentImgIndex];
+            lb.classList.add('open');
+            lb.style.display = 'flex';
+        }
+
+        function closeLightbox() {
+            const lb = document.getElementById('lightbox');
+            lb.classList.remove('open');
+            setTimeout(() => { lb.style.display = 'none'; }, 300);
+        }
+
+        function nextImg(e) {
+            e.stopPropagation();
+            currentImgIndex = (currentImgIndex + 1) % activeImages.length;
+            document.getElementById('lightbox-img').src = activeImages[currentImgIndex];
+        }
+
+        function prevImg(e) {
+            e.stopPropagation();
+            currentImgIndex = (currentImgIndex - 1 + activeImages.length) % activeImages.length;
+            document.getElementById('lightbox-img').src = activeImages[currentImgIndex];
+        }
+
+        window.onload = initMenu;
+    </script>
+</body>
+</html>
